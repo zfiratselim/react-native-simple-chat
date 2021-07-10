@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React,{useState} from 'react';
-import { StyleSheet, Text, TextInput, View, ScrollView, Button, Image } from 'react-native';
+import { StyleSheet, Text, TextInput, View, ScrollView, Button, Image,TouchableHighlight } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -34,29 +34,42 @@ function MessageBaloon({nick, message, time, gOra}){
 
 function ChatScreen({route, navigation}) {
   const { nickname } = route.params;
+  const [messages,setMessages]=useState([
+    {nick:"system", message:'Hello '+nickname,time:"17.25",gOra:true},
+    {nick:"Ali", message:'hi',time:"17.25",gOra:true},
+    {nick:"Murat", message:'whatsup man',time:"17.26",gOra:true},
+    {nick:"Ayşe", message:'Hi',time:"17.26",gOra:true},
+    {nick:"Ahmet", message:'Hello ',time:"17.27",gOra:true},
+    {nick:"Kerem", message:'How are you',time:"17.27",gOra:true},
+    {nick:"Feyza", message:'Hey',time:"17.27",gOra:true},
+  ]);
+  const [message,setMessage]=useState('');
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <ScrollView style={{width:"100%", height:"100%",paddingVertical:15,marginBottom:40}}>
-        <MessageBaloon nick="System" message={`Hello ${nickname}`} time="17.25" gOra={true}/> 
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır" time="17.25" gOra={true}/> 
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 1" time="17.25"gOra={false}/>
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır 2" time="17.26"gOra={true}/>
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 " time="17.26"gOra={false}/>
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır" time="17.25" gOra={true}/> 
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 1" time="17.25"gOra={false}/>
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır 2" time="17.26"gOra={true}/>
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 " time="17.26"gOra={false}/>
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır" time="17.25" gOra={true}/> 
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 1" time="17.25"gOra={false}/>
-        <MessageBaloon nick="Ali" message="Bu bir deneme mesajıdır 2" time="17.26"gOra={true}/>
-        <MessageBaloon nick="Veli" message="Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 Bu bir deneme mesajıdır 3 " time="17.26"gOra={false}/>
+        {messages.map(e=>{
+          return <MessageBaloon nick={e.nick} message={e.message} time={e.time} gOra={e.gOra}/>
+        })}
       </ScrollView>
       <View style={styles.messageArea}>
         <TextInput 
           placeholder="send a message"
           style={styles.message}
+          value={message}
+          onChangeText={setMessage}
         />
-        <Image source={require('./img/send.png')} style={styles.sendImg}/>
+        <TouchableHighlight
+        onPress={()=>{
+          setMessages(state=>[...state,{nick:nickname,message:message,time:"17.30",gOra:false}]);
+          setMessage('');
+        }}
+        >
+          <Image 
+          source={require('./img/send.png')} 
+          style={styles.sendImg}
+          />
+        </TouchableHighlight>
+        
       </View>
     </View>
   );
