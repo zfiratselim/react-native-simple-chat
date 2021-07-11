@@ -1,11 +1,33 @@
 import { StatusBar } from 'expo-status-bar';
-import React,{useState} from 'react';
+import React,{useState, useEffect} from 'react';
 import { StyleSheet, Text, TextInput, View, ScrollView, Button, Image,TouchableHighlight } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import IO from "socket.io-client";
 
+let sckt;
 function NicknameScreen({navigation}) {
   const [nn, setNn]=useState('');
+  const [btnClick,setBtnClick]=useState(false);
+
+  useEffect(() => {
+    if(!btnClick) return;
+    console.log('Buton tıklanıldı')
+    fetch('https://simple-chat-server-20210711.herokuapp.com/login',{
+      method: 'POST',
+      headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nick: nn,
+    })
+  })
+      .then((response) => response.json())
+      .then(json=>navigation.navigate('Chat',json))
+      .catch((error) => console.error(error))
+  }, [btnClick]);
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <TextInput 
@@ -14,13 +36,16 @@ function NicknameScreen({navigation}) {
       onChangeText={setNn}
       value={nn}
       />
-      <Button title="Join Chat" onPress={()=>navigation.navigate('Chat',{nickname:nn})}/>
+      <Button title="Join Chat" onPress={()=>{
+       setBtnClick(true);
+      }}/>
     </View>
   );
 }
 
-function MessageBaloon({nick, message, time, gOra}){
 
+
+function MessageBaloon({nick, message, time, gOra}){
   return(
     <View style={gOra?styles.messageBaloon0Con:styles.messageBaloon1Con}>
        <View style={[styles.messageBaloon,gOra?styles.messageBaloon0:styles.messageBaloon1,{color:"#"}]}>
@@ -33,22 +58,40 @@ function MessageBaloon({nick, message, time, gOra}){
 }
 
 function ChatScreen({route, navigation}) {
-  const { nickname } = route.params;
+  const { nick,token } = route.params;
+  const [data,setData] =useState({nick,token});
   const [messages,setMessages]=useState([
-    {nick:"system", message:'Hello '+nickname,time:"17.25",gOra:true},
-    {nick:"Ali", message:'hi',time:"17.25",gOra:true},
-    {nick:"Murat", message:'whatsup man',time:"17.26",gOra:true},
-    {nick:"Ayşe", message:'Hi',time:"17.26",gOra:true},
-    {nick:"Ahmet", message:'Hello ',time:"17.27",gOra:true},
-    {nick:"Kerem", message:'How are you',time:"17.27",gOra:true},
-    {nick:"Feyza", message:'Hey',time:"17.27",gOra:true},
+    {nick:"system", message:'Hello '+data.nick,time:"00.00",gOra:true},
   ]);
+  const [btnClick,setBtnClick]=useState(false);
   const [message,setMessage]=useState('');
+  const [socket, setSocket] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
+      useEffect(()=>{
+          setSocket(IO("https://simple-chat-server-20210711.herokuapp.com",{query:{token:token}}));
+          console.log('connect tekrar oldu')
+        },[])
+        useEffect(() => {
+          if (!socket) return;
+          socket.on('connect', (d) => {
+            console.log("connected",d);
+            setSocketConnected(socket.connected);
+          });
+          socket.on('disconnect', () => {
+            setSocketConnected(socket.connected);
+          });
+       
+        }, [socket]);
+        useEffect(()=>{
+          if(btnClick){
+            socket.emit('chat','lalalalalallalaal');
+          }
+          },[btnClick])
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <ScrollView style={{width:"100%", height:"100%",paddingVertical:15,marginBottom:40}}>
-        {messages.map(e=>{
-          return <MessageBaloon nick={e.nick} message={e.message} time={e.time} gOra={e.gOra}/>
+      <ScrollView style={{width:"100%", height:"100%", paddingVertical:15, marginBottom:40}}>
+        {messages.map((e,i)=>{
+          return <MessageBaloon key={i} nick={e.nick} message={e.message} time={e.time} gOra={e.gOra}/>
         })}
       </ScrollView>
       <View style={styles.messageArea}>
@@ -59,9 +102,7 @@ function ChatScreen({route, navigation}) {
           onChangeText={setMessage}
         />
         <TouchableHighlight
-        onPress={()=>{
-          setMessages(state=>[...state,{nick:nickname,message:message,time:"17.30",gOra:false}]);
-          setMessage('');
+        onPress={()=>{setBtnClick(true);
         }}
         >
           <Image 
