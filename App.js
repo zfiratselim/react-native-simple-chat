@@ -65,7 +65,7 @@ function ChatScreen({route, navigation}) {
   const [message,setMessage]=useState('');
   const [socket, setSocket] = useState(null);
       useEffect(()=>{
-        const sckt=IO("https://simple-chat-server-20210711.herokuapp.com",{transports:["websocket"],query:{token:token}});
+        const sckt=IO("your_server_Address",{transports:["websocket"],query:{token:token}});
          /* sckt.on('connect', (d) => {
             console.log("connected",d);
             subscribeToDateEvent();
